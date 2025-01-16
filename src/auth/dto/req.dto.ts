@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, Matches, MaxLength } from 'class-validator';
 
 export class SignupReqDto {
-  @ApiProperty({ required: true, example: 'nestjs@fastcampus.com' })
+  @ApiProperty({ required: true, example: 'gamel@gmail.com' })
   @IsEmail()
   @MaxLength(30)
   email: string;
@@ -17,7 +17,7 @@ export class SignupReqDto {
 }
 
 export class SigninReqDto {
-  @ApiProperty({ required: true, example: 'nestjs@fastcampus.com' })
+  @ApiProperty({ required: true, example: 'gamel@gmail.com' })
   @IsEmail()
   @MaxLength(30)
   email: string;

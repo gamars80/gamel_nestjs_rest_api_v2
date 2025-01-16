@@ -34,3 +34,35 @@
 - AWS EC2
 - Docker
 - Git, Github
+
+
+## 스터디 정리
+- 커스텀 프로바이더
+  1.밸류프로바이더
+    프로바이더와 유즈밸류 속성
+    코드작성 학습
+      유저서비스를 대체할 유저목서비스
+      user.module.ts에
+        //UserMockService 를 만들고 일단 findAll 기능만
+        const UserMockService = {
+          findAll: () => {
+            return 'find mock users'
+          }
+        }
+
+        providers: [
+          {
+            provide: UserService, //고유 이름은 그대로 기존의 UserService 인젝션 토큰 지정
+            useValue: UserMockService //실제로 정말 사용할 프로바이더는 위에 생성한 유저목서비스 지정
+          }
+        ],
+
+  2.클래스 프로바이더
+    provide와 useClass 속성을 가진다
+    프로바이드로 생성할 객체를 동적으로 구성 가능
+    이미 사용예
+      auth.module.ts에
+      {
+        provide: APP_GUARD, //nest에서 제공해주는 예약어 APP_GUARD 고유 인젝션 토큰 지정
+        useClass: JwtAuthGuard, //전역으로 사용하기 위해 클래스 프로바이드 선언
+      },
