@@ -59,10 +59,123 @@
 
   2.클래스 프로바이더
     provide와 useClass 속성을 가진다
-    프로바이드로 생성할 객체를 동적으로 구성 가능
+    프로바이더로 생성할 객체를 동적으로 구성 가능
     이미 사용예
       auth.module.ts에
       {
         provide: APP_GUARD, //nest에서 제공해주는 예약어 APP_GUARD 고유 인젝션 토큰 지정
         useClass: JwtAuthGuard, //전역으로 사용하기 위해 클래스 프로바이드 선언
       },
+
+  3.팩토리 프로바이더
+    사용해야할 프로바이더 객체를 동적으로 구성 가능
+    provide , useFactory 라는 속성 가짐
+
+- 커스텀 프로바이더 활용한 테스트 코드 작성
+    test code 작성을 위한 클래스 프로바이더
+    jest에서 절대경로 인식을 위한 package.json에 jest 항목에 매퍼 경로 추가
+      "moduleNameMapper": {
+        "^src/(.*)$": "<rootDir>/$1"
+      }
+    유저 서비스에 테스트 할수 있는 spec.ts 생성
+      findOneBy test가 가능한 Mock용 레포지토리 생성
+
+      describe('User', () => {
+        let userService: UserService;
+
+        beforeEach(async () => {
+            const module: TestingModule = await Test.createTestingModule({
+                providers: [
+                    UserService,
+                    {
+                        provide: getRepositoryToken(User),
+                        useClass: MockRepository, //클래스 프로바이더 이제 UserService는 mock용 레포지토리를 바라본다
+                    }
+                ]
+            }).compile();
+
+          
+            userService = module.get<UserService>(UserService);
+        })
+
+        it('should', async () => {
+            const email = 'gamel@gmail.com';
+            const result = await userService.findOneByEmail(email);
+        })
+      })
+    
+    테스트 돌려본다 npm run test
+
+- msa를 염두한 설계중 모듈에 대해
+    모듈이란 각각의 도메인 현재로는 user , auth, video, common등등
+    이러한 모듈들이 모여 하나의 서비스를 이룬다
+    추후 msa관점에서 일부 도메인의 모듈이 커지면 해당 도메인을 하나의 마이크로 서비스로 분리할 수 있다
+
+- 동적모듈을 활용해서 config 모듈 구성
+    모듈이 생성될때 동적으로 어떤 변수들이 정해지는 동적모듈을 활용하면 실행환경에 따라 서버에 설정된 환경변수를 관리할 수 있는 config모듈을 만들 수 있다
+    nest에서 제공하는 패키지 설치
+      npm i --save @nestjs/config
+
+    app.module.ts에 imports
+      ConfigModule.forRoot({
+        isGlobal: true,
+        load: []
+      }),
+
+    커스텀 컨피그 파일
+      의미 있는 단위로 묶어서 처리하기 위함
+      src> config 폴더 생성 postgres.config.ts
+        export default registerAs('postgres', () => ({
+          host: process.env.POSTGRES_HOST || 'localhost',
+          port: process.env.POSTGRES_PORT ? Number(process.env.POSTGRES_PORT) : 5434,
+          database: process.env.POSTGRES_DATABASE || 'postgres',
+          username: process.env.POSTGRES_USERNAME || 'postgres',
+          password: process.env.POSTGRES_PASSWORD || 'postgres'
+      }))
+
+    app.module.ts 수정
+      TypeOrm.forRoot를 forRootAsync로 변경해서 
+      TypeOrmModule.forRootAsync({ 
+        inject: [ConfigService], //inject프로퍼티 설정 (타입orm모듈이 처음 init이 될때 필요한 것들을 주입받아서 쓸 수 있게함 ) , ConfigService 주입
+
+        //useFactory를 이용해서 동적 구성
+        //TypeOrm관련된 옵션들을 리턴해주게 됨
+        useFactory: async (configService : ConfigService) => {
+          let obj: TypeOrmModuleOptions = {
+            type: 'postgres',
+            host: configService.get('postgres.host'), //postgres.config.ts의 접두어 이용 
+            port: configService.get('postgres.port'),
+            database: configService.get('postgres.database'),
+            username: configService.get('postgres.username'),
+            password: configService.get('postgres.password'),
+            autoLoadEntities: true
+          };
+
+          //좀더 튜닝
+          //실행환경에 따라 추가하고 싶은 싱크로나이징과 쿼리 로깅
+          //로컬에서는 엔티티를 수정할경우 싱크로 나이징이 유리할수도 있어서
+          //configService는 앱이 띄워질때 주어지는 환경 변수들에 대해서도 접근해서 가져올수 있음
+          if(configService.get('STAGE') === 'local') { //로컬에서만 되게 조심
+            console.log('Sync Postgres')
+            obj = Object.assign(obj, {
+              synchronize: true,
+              logging: true
+            })
+          }
+        }
+      }),
+
+
+      ConfigModule.forRoot({
+        isGlobal: true,
+        load: [postgresConfig] //postgres.config.ts를 load하게 설정
+      }),
+
+    package.json에 start:dev에 STAGE 환경변수 추가
+      "start:dev": "STAGE=local nest start --watch"
+    
+    
+
+
+
+
