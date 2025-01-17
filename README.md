@@ -172,7 +172,21 @@
       }),
 
     package.json에 start:dev에 STAGE 환경변수 추가
-      "start:dev": "STAGE=local nest start --watch"
+      //윈도우일경우 cross-env를 붙혀줘야 한다
+      "start:dev": "cross-env STAGE=local nest start --watch"
+
+    jwt secret도 환경 설정해보기
+      config > jwt.config.ts 생성
+        export default registerAs('jwt', () => ({
+            secret : process.env.JWT_SECRET || 'temp secret'
+        }))
+      
+      app.modul.ts에
+        ConfigModule.forRoot({
+          isGlobal: true,
+          load: [postgresConfig, jwtConfig] //load에 jwtConfig 같이 로드되게 추가
+        }),
+
     
     
 

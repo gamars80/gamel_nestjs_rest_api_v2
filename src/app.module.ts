@@ -6,12 +6,14 @@ import { VideoModule } from './video/video.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import postgresConfig from './config/postgres.config';
+import jwtConfig from './config/jwt.config';
+
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [postgresConfig]
+      load: [postgresConfig, jwtConfig]
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],

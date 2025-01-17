@@ -5,22 +5,22 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
 
-const UserMockService = {
-  findAll: () => {
-    return 'find mock users'
-  }
-}
+// const UserMockService = {
+//   findAll: () => {
+//     return 'find mock users'
+//   }
+// }
 
 @Module({
   imports: [TypeOrmModule.forFeature([User])],
   exports: [UserService],
   controllers: [UserController],
   providers: [
-    {
-      provide: UserService,
-      useValue: UserMockService
-    }
-    // UserService
+    // {
+    //   provide: UserService,
+    //   useValue: UserMockService
+    // }
+    UserService
   ],
 })
 export class UserModule {}
