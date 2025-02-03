@@ -309,33 +309,33 @@
 
 
   - 미들웨어와 인터셉터
-    라우트 핸들러가 클라이언트의 요청을 처리하기 전 수행하는 컴포넌드
-    express의 미들웨어와 동일
-    인증, 인가, 로깅, 응답데이터의 변경등
-    인증인가: Guard
-    요청 : 인터셉터
-    access log : 미들웨어
+    - 라우트 핸들러가 클라이언트의 요청을 처리하기 전 수행하는 컴포넌드
+    - express의 미들웨어와 동일
+    - 인증, 인가, 로깅, 응답데이터의 변경등
+    - 인증인가: Guard
+    - 요청 : 인터셉터
+    - access log : 미들웨어
 
-    common > middleware > logger.middleware.ts
-      access log에는 보통 http 메소드, url , 응답코드, 응답컨텐츠 길이, 요청한 유저 에이전트, ip 정보등
+    - common > middleware > logger.middleware.ts
+      - access log에는 보통 http 메소드, url , 응답코드, 응답컨텐츠 길이, 요청한 유저 에이전트, ip 정보등
 
-      @Injectable()
-      export class LoggerMiddleware implements NestMiddleware {
-          private logger = new Logger('HTTP');
+            @Injectable()
+            export class LoggerMiddleware implements NestMiddleware {
+                private logger = new Logger('HTTP');
 
-          use(request: Request, response: Response, next: NextFunction): void {
-              const {ip, method, originalUrl: url } = request;
-              const userAgent = request.get('user-agent') || '';
+                use(request: Request, response: Response, next: NextFunction): void {
+                    const {ip, method, originalUrl: url } = request;
+                    const userAgent = request.get('user-agent') || '';
 
-              response.on('close', () => {
-                  const { statusCode } = response;
-                  const contentLength = response.get('content-length');
-                  this.logger.log(`${mergeWith} ${url}, ${statusCode}, ${contentLength} - ${userAgent} ${ip}}`);
-              });
+                    response.on('close', () => {
+                        const { statusCode } = response;
+                        const contentLength = response.get('content-length');
+                        this.logger.log(`${mergeWith} ${url}, ${statusCode}, ${contentLength} - ${userAgent} ${ip}}`);
+                    });
 
-              next();
-          }
-      }
+                    next();
+                }
+            }
 
     루트 모듈인 app.module.ts에 위 미들웨어 적용
 
