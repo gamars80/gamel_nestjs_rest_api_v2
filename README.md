@@ -252,21 +252,23 @@
             throw new UnauthorizedException(); 
           }
 
-  인가 기능에 활용할수 있는 메타 데이터
-    메타데이터
-      ex: Pubice() 데코레이터
-        //SetMetadata 에 특정 키와 밸루로 메타데이터 설정
-        export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
+  - 인가 기능에 활용할수 있는 메타 데이터
+    - 메타데이터
+      - ex: Pubice() 데코레이터
 
-      jwt.auth.guard.ts에서도 아래처럼 메타데이터를 reflector를 이용해서 읽을수도 있다
-        const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-            context.getHandler(),
-            context.getClass(),
-        ]);
-        
-        if (isPublic) {
-          return true;
-        }
+            //SetMetadata 에 특정 키와 밸루로 메타데이터 설정
+            export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
+
+      - jwt.auth.guard.ts에서도 아래처럼 메타데이터를 reflector를 이용해서 읽을수도 있다
+
+            const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+                context.getHandler(),
+                context.getClass(),
+            ]);
+            
+            if (isPublic) {
+              return true;
+            }
 
 
     메타데이터를 이용해 유저에 롤 부여
