@@ -120,10 +120,10 @@
 
     - app.module.ts에 imports
 
-        ConfigModule.forRoot({
-          isGlobal: true,
-          load: []
-        }),
+          ConfigModule.forRoot({
+            isGlobal: true,
+            load: []
+          }),
 
     - 커스텀 컨피그 파일
       - 의미 있는 단위로 묶어서 처리하기 위함
