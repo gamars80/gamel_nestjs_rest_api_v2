@@ -172,10 +172,10 @@
             }),
 
 
-      ConfigModule.forRoot({
-        isGlobal: true,
-        load: [postgresConfig] //postgres.config.ts를 load하게 설정
-      }),
+            ConfigModule.forRoot({
+              isGlobal: true,
+              load: [postgresConfig] //postgres.config.ts를 load하게 설정
+            }),
 
     package.json에 start:dev에 STAGE 환경변수 추가
       //윈도우일경우 cross-env를 붙혀줘야 한다
