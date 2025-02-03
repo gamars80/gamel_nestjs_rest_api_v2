@@ -271,37 +271,41 @@
             }
 
 
-    메타데이터를 이용해 유저에 롤 부여
-      user > enum> user.enum.ts 생성
-        export enum Role {
-            Admin = 'ADMIN',
-            User = 'USER'
-        }
+    - 메타데이터를 이용해 유저에 롤 부여
+      - user > enum> user.enum.ts 생성
+
+            export enum Role {
+                Admin = 'ADMIN',
+                User = 'USER'
+            }
       
-      user.entity.ts 에 role 컬럼 추가
-        Column({ type: 'enum', enum: Role })
-        role: Role = Role.User;
+      - user.entity.ts 에 role 컬럼 추가
 
-      롤관련 데코레이터 생성
-        common > decorator > role.decorator.ts 생성          
-          export const ROLES_KEY = 'roles';
-          export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
+            Column({ type: 'enum', enum: Role })
+            role: Role = Role.User;
 
-      user의 findAll에 롤데코레이터 적용해보기
-        @Roles(Role.Admin)
-        jwt-auth.guard 수정
-        reflector 에용해서 메타데이터에서 ROLES_KEY를 가져온다
+      - 롤관련 데코레이터 생성
+        - common > decorator > role.decorator.ts 생성       
 
-          const requireRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
-            context.getHandler(),
-            context.getClass()
-          ])
+                export const ROLES_KEY = 'roles';
+                export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
 
-          if( requireRoles ) {
-            const userId = decoded['sub'];
-            return this.userService.checkUserIsAdmin(userId);
+      - user의 findAll에 롤데코레이터 적용해보기
 
-          }
+            @Roles(Role.Admin)
+            jwt-auth.guard 수정
+            reflector 에용해서 메타데이터에서 ROLES_KEY를 가져온다
+
+              const requireRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+                context.getHandler(),
+                context.getClass()
+              ])
+
+              if( requireRoles ) {
+                const userId = decoded['sub'];
+                return this.userService.checkUserIsAdmin(userId);
+
+              }
 
 
   - 미들웨어와 인터셉터
