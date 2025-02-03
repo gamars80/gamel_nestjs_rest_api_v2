@@ -190,10 +190,11 @@
             }))
       
       app.modul.ts에
-        ConfigModule.forRoot({
-          isGlobal: true,
-          load: [postgresConfig, jwtConfig] //load에 jwtConfig 같이 로드되게 추가
-        }),
+
+            ConfigModule.forRoot({
+              isGlobal: true,
+              load: [postgresConfig, jwtConfig] //load에 jwtConfig 같이 로드되게 추가
+            }),
 
       auth.modul.ts에 config 서비스를 주입해서 이용
         JwtModule.registerAsync({
