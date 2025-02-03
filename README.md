@@ -119,6 +119,7 @@
       npm i --save @nestjs/config
 
     - app.module.ts에 imports
+    
       ConfigModule.forRoot({
         isGlobal: true,
         load: []
