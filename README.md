@@ -42,8 +42,9 @@
     - 프로바이더와 유즈밸류 속성
     - 코드작성 학습
       - 유저서비스를 대체할 유저목서비스
-      user.module.ts에
-        //UserMockService 를 만들고 일단 findAll 기능만
+        user.module.ts에
+        
+        UserMockService 를 만들고 일단 findAll 기능만
         const UserMockService = {
           findAll: () => {
             return 'find mock users'
