@@ -126,7 +126,7 @@
 
     - 커스텀 컨피그 파일
       - 의미 있는 단위로 묶어서 처리하기 위함
-        - src> config 폴더 생성 postgres.config.ts
+      - src> config 폴더 생성 postgres.config.ts
 
           export default registerAs('postgres', () => ({
             host: process.env.POSTGRES_HOST || 'localhost',
