@@ -38,10 +38,10 @@
 
 ## 스터디 정리
 - 커스텀 프로바이더
-  1.밸류프로바이더
-    프로바이더와 유즈밸류 속성
-    코드작성 학습
-      유저서비스를 대체할 유저목서비스
+  - 1.밸류프로바이더
+    - 프로바이더와 유즈밸류 속성
+    - 코드작성 학습
+      - 유저서비스를 대체할 유저목서비스
       user.module.ts에
         //UserMockService 를 만들고 일단 findAll 기능만
         const UserMockService = {
@@ -57,7 +57,7 @@
           }
         ],
 
-  2.클래스 프로바이더
+  - 2.클래스 프로바이더
     provide와 useClass 속성을 가진다
     프로바이더로 생성할 객체를 동적으로 구성 가능
     이미 사용예
@@ -374,7 +374,7 @@
       리팩토링
         auth.module.ts에 윈스턴 로고 적용해보기
           providers에 Logger 선언
-          
+
         jwt-auth.guard.ts에 console.error를 윈스턴 로고로 리팩토링
           @Inject(Logger) private logger: LoggerService // 주입
 
@@ -387,7 +387,39 @@
 
 
 
+    인터셉터
+      클라이언트 요청에 대해 라우터 핸들러가 처리하기 전 후로 호출되는 nest에 제공하는 모듈
+      요청과 응답을 원하는대로 변경가능
+      페이징 처리하는 요청 응답값에 page와 size를 자동으로 넣는 인터셉터 구현해보기
+      common > interceptor > transform.interceptor.ts
+        @Injectable()
+        export class TransformInterceptor<T, R> implements NestInterceptor<T, R> {
+            intercept(context: ExecutionContext, next: CallHandler): Observable<R> {
+                return next.handle().pipe(
+                    map((data) => {
+                        const http = context.switchToHttp();
+                        const request = http.getRequest<Request>();
 
+                        if (Array.isArray(data)) {
+                            return {
+                                items: data,
+                                page: Number(request.query['page'] || 1),
+                                size: Number(request.query['size'] || 20)  
+                            }
+                        }else{
+                            return data;
+                        }
+                    })
+                )
+            }
+        }
+
+      인터셉터 글로벌 적용
+        main.ts에 추가
+        app.useGlobalInterceptors(new TransformInterceptor());
+      
+
+        
 
 
 
