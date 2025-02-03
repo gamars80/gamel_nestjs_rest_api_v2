@@ -209,45 +209,48 @@
               },
             }),
 
+
 - 인증과 인가에 대해
-  인증 : 유저나 디바이스의 신원 증명
-    이메일, 패스워드 로그인 기능
-  인가 : 유저나 디바이스에 접근권한을 부여하거나 거부
-    웹토큰을 이용한 접근
+  - 인증 : 유저나 디바이스의 신원 증명
+    - 이메일, 패스워드 로그인 기능
+  - 인가 : 유저나 디바이스에 접근권한을 부여하거나 거부
+    - 웹토큰을 이용한 접근
   
-  슬라이딩 세션
-    토큰 유효기간 종료시 다시 로그인을 거치지 않고 새로운 토큰을 발급하는 방식
-  리프레쉬 토큰
-    로그인을 대신할 토큰
-    동일한 json web token
-    엑세스 토큰보다 만료시간 길게
-    로그인시 엑세스토큰과 리프레쉬 토큰 같이 발행
-    엑세스토큰이 401로 만료시 리스레쉬 토큰 이용
-  auth > entity > refresh-token.entity.ts 생성
-    User랑 OnetoOne 관계 설정
+  - 슬라이딩 세션
+    - 토큰 유효기간 종료시 다시 로그인을 거치지 않고 새로운 토큰을 발급하는 방식
+  - 리프레쉬 토큰
+    - 로그인을 대신할 토큰
+    - 동일한 json web token
+    - 엑세스 토큰보다 만료시간 길게
+    - 로그인시 엑세스토큰과 리프레쉬 토큰 같이 발행
+    - 엑세스토큰이 401로 만료시 리스레쉬 토큰 이용
+  - auth > entity > refresh-token.entity.ts 생성
+    - User랑 OnetoOne 관계 설정
   
-  auth.module.ts imports에 엔티티 TypeOrm 설정
-    TypeOrmModule.forFeature([RefreshToken]),
+  - auth.module.ts imports에 엔티티 TypeOrm 설정
 
-  로그인 결과에 리스레쉬 토큰도 내려주게 추가한다
+        TypeOrmModule.forFeature([RefreshToken]),
 
-  리플레시 토큰 관련 기능 구현
-    리플레시라는 라우터 핸들러 구현
-      엑세스 토큰이 만료시 클라이언트 단에서 뒷단에서 로그인시 발급 받은 리플레시 토큰을 이용하는 api
-      헤더에서 넘어온 리프레쉬 토큰으로 db에 있는지 조회
-      없으면 어세스토큰과 리프레시 토큰을 다시 생성하여 return
+  - 로그인 결과에 리스레쉬 토큰도 내려주게 추가한다
 
-    jwt.auth.guard로 가서 리플레시토큰을 활용해서 엑세스토큰 역활을 할수 있기에 방지차 리팩토링
-      //url과 headers에 접근 가능해짐
-      const {url, headers} = http.getRequest<Request>();
-      const token = /Bearer\s(.+)/.exec(headers['authorization'])[1];
-      //디코딩
-      const decoded = this.jwtService.decode(token);
+  - 리플레시 토큰 관련 기능 구현
+    - 리플레시라는 라우터 핸들러 구현
+      - 엑세스 토큰이 만료시 클라이언트 단에서 뒷단에서 로그인시 발급 받은 리플레시 토큰을 이용하는 api
+      - 헤더에서 넘어온 리프레쉬 토큰으로 db에 있는지 조회
+      - 없으면 어세스토큰과 리프레시 토큰을 다시 생성하여 return
 
-      if(url !== '/api/auth/refresh' && decoded['tokenType'] === 'refresh') {
-        console.error('accessToken is required');
-        throw new UnauthorizedException(); 
-      }
+    - jwt.auth.guard로 가서 리플레시토큰을 활용해서 엑세스토큰 역활을 할수 있기에 방지차 리팩토링
+
+          //url과 headers에 접근 가능해짐
+          const {url, headers} = http.getRequest<Request>();
+          const token = /Bearer\s(.+)/.exec(headers['authorization'])[1];
+          //디코딩
+          const decoded = this.jwtService.decode(token);
+
+          if(url !== '/api/auth/refresh' && decoded['tokenType'] === 'refresh') {
+            console.error('accessToken is required');
+            throw new UnauthorizedException(); 
+          }
 
   인가 기능에 활용할수 있는 메타 데이터
     메타데이터
