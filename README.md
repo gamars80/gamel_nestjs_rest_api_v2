@@ -45,6 +45,7 @@
         user.module.ts에
         
         UserMockService 를 만들고 일단 findAll 기능만
+
           const UserMockService = {
             findAll: () => {
               return 'find mock users'
@@ -62,11 +63,11 @@
     - provide와 useClass 속성을 가진다
     - 프로바이더로 생성할 객체를 동적으로 구성 가능
     - 이미 사용예
-      auth.module.ts에
-      {
-        provide: APP_GUARD, //nest에서 제공해주는 예약어 APP_GUARD 고유 인젝션 토큰 지정
-        useClass: JwtAuthGuard, //전역으로 사용하기 위해 클래스 프로바이드 선언
-      },
+      - auth.module.ts에
+          {
+            provide: APP_GUARD, //nest에서 제공해주는 예약어 APP_GUARD 고유 인젝션 토큰 지정
+            useClass: JwtAuthGuard, //전역으로 사용하기 위해 클래스 프로바이드 선언
+          },
 
   - 3.팩토리 프로바이더
     - 사용해야할 프로바이더 객체를 동적으로 구성 가능
