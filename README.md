@@ -367,72 +367,76 @@
                   })
                 });
 
-      대체한 로거를 사용할 모듈에서 provider로 선언해서 사용할수 있게 함
-        app.module.ts에 providers: [Logger], 선언
+      - 대체한 로거를 사용할 모듈에서 provider로 선언해서 사용할수 있게 함
+        - app.module.ts에 
+                
+                providers: [Logger], 선언
 
-      logger.middleware.ts가서 수정
+      - logger.middleware.ts가서 수정
      
-        @Injectable()
-        export class LoggerMiddleware implements NestMiddleware {
-            constructor(@Inject(Logger) private readonly logger: LoggerService) {} // 윈스턴 로고 주입
+              @Injectable()
+              export class LoggerMiddleware implements NestMiddleware {
+                  constructor(@Inject(Logger) private readonly logger: LoggerService) {} // 윈스턴 로고 주입
 
-            use(request: Request, response: Response, next: NextFunction): void {
-                const {ip, method, originalUrl: url } = request;
-                const userAgent = request.get('user-agent') || '';
+                  use(request: Request, response: Response, next: NextFunction): void {
+                      const {ip, method, originalUrl: url } = request;
+                      const userAgent = request.get('user-agent') || '';
 
-                response.on('close', () => {
-                    const { statusCode } = response;
-                    const contentLength = response.get('content-length');
-                    this.logger.log(`${mergeWith} ${url}, ${statusCode}, ${contentLength} - ${userAgent} ${ip}}`);
-                });
+                      response.on('close', () => {
+                          const { statusCode } = response;
+                          const contentLength = response.get('content-length');
+                          this.logger.log(`${mergeWith} ${url}, ${statusCode}, ${contentLength} - ${userAgent} ${ip}}`);
+                      });
 
-                next();
-            }
+                      next();
+                  }
 
-        }
+              }
 
-      리팩토링
-        auth.module.ts에 윈스턴 로고 적용해보기
+      - 리팩토링
+        - auth.module.ts에 윈스턴 로고 적용해보기
           providers에 Logger 선언
 
-        jwt-auth.guard.ts에 console.error를 윈스턴 로고로 리팩토링
-          @Inject(Logger) private logger: LoggerService // 주입
+        - jwt-auth.guard.ts에 console.error를 윈스턴 로고로 리팩토링
 
-          if(url !== '/api/auth/refresh' && decoded['tokenType'] === 'refresh') {
-            const error = new UnauthorizedException('accessToken is required');
-            
-            this.logger.error(error.message, error.stack);
-            throw error;
-          }
+                @Inject(Logger) private logger: LoggerService // 주입
+
+                if(url !== '/api/auth/refresh' && decoded['tokenType'] === 'refresh') {
+                  const error = new UnauthorizedException('accessToken is required');
+                  
+                  this.logger.error(error.message, error.stack);
+                  throw error;
+                }
 
 
 
-    인터셉터
-      클라이언트 요청에 대해 라우터 핸들러가 처리하기 전 후로 호출되는 nest에 제공하는 모듈
-      요청과 응답을 원하는대로 변경가능
-      페이징 처리하는 요청 응답값에 page와 size를 자동으로 넣는 인터셉터 구현해보기
-      common > interceptor > transform.interceptor.ts
-        @Injectable()
-        export class TransformInterceptor<T, R> implements NestInterceptor<T, R> {
-            intercept(context: ExecutionContext, next: CallHandler): Observable<R> {
-                return next.handle().pipe(
-                    map((data) => {
-                        const http = context.switchToHttp();
-                        const request = http.getRequest<Request>();
+    - 인터셉터
+      - 클라이언트 요청에 대해 라우터 핸들러가 처리하기 전 후로 호출되는 nest에 제공하는 모듈
+      - 요청과 응답을 원하는대로 변경가능
+      - 페이징 처리하는 요청 응답값에 page와 size를 자동으로 넣는 인터셉터 구현해보기
+      - common > interceptor > transform.interceptor.ts
 
-                        if (Array.isArray(data)) {
-                            return {
-                                items: data,
-                                page: Number(request.query['page'] || 1),
-                                size: Number(request.query['size'] || 20)  
-                            }
-                        }else{
-                            return data;
-                        }
-                    })
-                )
-            }
-        }
+              @Injectable()
+              export class TransformInterceptor<T, R> implements NestInterceptor<T, R> {
+                  intercept(context: ExecutionContext, next: CallHandler): Observable<R> {
+                      return next.handle().pipe(
+                          map((data) => {
+                              const http = context.switchToHttp();
+                              const request = http.getRequest<Request>();
+
+                              if (Array.isArray(data)) {
+                                  return {
+                                      items: data,
+                                      page: Number(request.query['page'] || 1),
+                                      size: Number(request.query['size'] || 20)  
+                                  }
+                              }else{
+                                  return data;
+                              }
+                          })
+                      )
+                  }
+              }
 
       인터셉터 글로벌 적용
         main.ts에 추가
