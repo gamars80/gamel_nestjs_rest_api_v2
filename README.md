@@ -128,18 +128,18 @@
       - 의미 있는 단위로 묶어서 처리하기 위함
         - src> config 폴더 생성 postgres.config.ts
 
-          //작업
-          export default registerAs('postgres', () => ({
-            host: process.env.POSTGRES_HOST || 'localhost',
-            port: process.env.POSTGRES_PORT ? Number(process.env.POSTGRES_PORT) : 5434,
-            database: process.env.POSTGRES_DATABASE || 'postgres',
-            username: process.env.POSTGRES_USERNAME || 'postgres',
-            password: process.env.POSTGRES_PASSWORD || 'postgres'
-          }))
+            export default registerAs('postgres', () => ({
+              host: process.env.POSTGRES_HOST || 'localhost',
+              port: process.env.POSTGRES_PORT ? Number(process.env.POSTGRES_PORT) : 5434,
+              database: process.env.POSTGRES_DATABASE || 'postgres',
+              username: process.env.POSTGRES_USERNAME || 'postgres',
+              password: process.env.POSTGRES_PASSWORD || 'postgres'
+            }))
 
 
-    app.module.ts 수정
-      TypeOrm.forRoot를 forRootAsync로 변경해서 
+    - app.module.ts 수정
+      - TypeOrm.forRoot를 forRootAsync로 변경해서 
+      
       TypeOrmModule.forRootAsync({ 
         inject: [ConfigService], //inject프로퍼티 설정 (타입orm모듈이 처음 init이 될때 필요한 것들을 주입받아서 쓸 수 있게함 ) , ConfigService 주입
 
