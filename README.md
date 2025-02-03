@@ -182,11 +182,12 @@
           //윈도우일경우 cross-env를 붙혀줘야 한다
           "start:dev": "cross-env STAGE=local nest start --watch"
 
-    jwt secret도 환경 설정해보기
+    - jwt secret도 환경 설정해보기
       config > jwt.config.ts 생성
-        export default registerAs('jwt', () => ({
-            secret : process.env.JWT_SECRET || 'temp secret'
-        }))
+
+            export default registerAs('jwt', () => ({
+                secret : process.env.JWT_SECRET || 'temp secret'
+            }))
       
       app.modul.ts에
         ConfigModule.forRoot({
