@@ -109,16 +109,16 @@
     테스트 돌려본다 npm run test
 
 - msa를 염두한 설계중 모듈에 대해
-    모듈이란 각각의 도메인 현재로는 user , auth, video, common등등
-    이러한 모듈들이 모여 하나의 서비스를 이룬다
-    추후 msa관점에서 일부 도메인의 모듈이 커지면 해당 도메인을 하나의 마이크로 서비스로 분리할 수 있다
+    -모듈이란 각각의 도메인 현재로는 user , auth, video, common등등
+    -이러한 모듈들이 모여 하나의 서비스를 이룬다
+    -추후 msa관점에서 일부 도메인의 모듈이 커지면 해당 도메인을 하나의 마이크로 서비스로 분리할 수 있다
 
 - 동적모듈을 활용해서 config 모듈 구성
-    모듈이 생성될때 동적으로 어떤 변수들이 정해지는 동적모듈을 활용하면 실행환경에 따라 서버에 설정된 환경변수를 관리할 수 있는 config모듈을 만들 수 있다
-    nest에서 제공하는 패키지 설치
+    -모듈이 생성될때 동적으로 어떤 변수들이 정해지는 동적모듈을 활용하면 실행환경에 따라 서버에 설정된 환경변수를 관리할 수 있는 config모듈을 만들 수 있다
+    -nest에서 제공하는 패키지 설치
       npm i --save @nestjs/config
 
-    app.module.ts에 imports
+    -app.module.ts에 imports
       ConfigModule.forRoot({
         isGlobal: true,
         load: []
