@@ -156,19 +156,19 @@
                 autoLoadEntities: true
               };
 
-            //좀더 튜닝
-            //실행환경에 따라 추가하고 싶은 싱크로나이징과 쿼리 로깅
-            //로컬에서는 엔티티를 수정할경우 싱크로 나이징이 유리할수도 있어서
-            //configService는 앱이 띄워질때 주어지는 환경 변수들에 대해서도 접근해서 가져올수 있음
-            if(configService.get('STAGE') === 'local') { //로컬에서만 되게 조심
-              console.log('Sync Postgres')
-              obj = Object.assign(obj, {
-                synchronize: true,
-                logging: true
-              })
+              //좀더 튜닝
+              //실행환경에 따라 추가하고 싶은 싱크로나이징과 쿼리 로깅
+              //로컬에서는 엔티티를 수정할경우 싱크로 나이징이 유리할수도 있어서
+              //configService는 앱이 띄워질때 주어지는 환경 변수들에 대해서도 접근해서 가져올수 있음
+              if(configService.get('STAGE') === 'local') { //로컬에서만 되게 조심
+                console.log('Sync Postgres')
+                obj = Object.assign(obj, {
+                  synchronize: true,
+                  logging: true
+                })
+              }
             }
-          }
-        }),
+          }),
 
 
       ConfigModule.forRoot({
