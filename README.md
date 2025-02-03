@@ -189,24 +189,25 @@
                 secret : process.env.JWT_SECRET || 'temp secret'
             }))
       
-      app.modul.ts에
+      app.module.ts에
 
             ConfigModule.forRoot({
               isGlobal: true,
               load: [postgresConfig, jwtConfig] //load에 jwtConfig 같이 로드되게 추가
             }),
 
-      auth.modul.ts에 config 서비스를 주입해서 이용
-        JwtModule.registerAsync({
-          inject: [ConfigService],
-          useFactory: async (configService: ConfigService) => {
-            return {
-              global: true,
-              secret: configService.get('jwt.secret'),
-              signOptions: { expiresIn: '1d' },
-            };
-          },
-        }),
+      auth.module.ts에 config 서비스를 주입해서 이용
+
+            JwtModule.registerAsync({
+              inject: [ConfigService],
+              useFactory: async (configService: ConfigService) => {
+                return {
+                  global: true,
+                  secret: configService.get('jwt.secret'),
+                  signOptions: { expiresIn: '1d' },
+                };
+              },
+            }),
 
 - 인증과 인가에 대해
   인증 : 유저나 디바이스의 신원 증명
