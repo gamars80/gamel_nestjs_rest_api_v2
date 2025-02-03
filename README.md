@@ -337,34 +337,35 @@
                 }
             }
 
-    루트 모듈인 app.module.ts에 위 미들웨어 적용
+    - 루트 모듈인 app.module.ts에 위 미들웨어 적용
 
-      //NestModule 상속받고
-      export class AppModule implements NestModule{
-        configure(consumer: MiddlewareConsumer): void {
-          //모든 라우터에 적용
-          consumer.apply(LoggerMiddleware).forRoutes('*');
-        }
-      }
+          //NestModule 상속받고
+          export class AppModule implements NestModule{
+            configure(consumer: MiddlewareConsumer): void {
+              //모든 라우터에 적용
+              consumer.apply(LoggerMiddleware).forRoutes('*');
+            }
+          }
 
-    nest-winston을 활용한 로깅
-      프로덕션 레벨에서는 로컬이 아닌 db나 서드 파티에 남겨야 하므로 편한게 할수 있음
-      라이브러리 설치
+    - nest-winston을 활용한 로깅
+      - 프로덕션 레벨에서는 로컬이 아닌 db나 서드 파티에 남겨야 하므로 편한게 할수 있음
+      - 라이브러리 설치
         npm i nest-winston winston
 
-      부트스랩에 포함된 로깅까지 winston모듈에서 제공하는 로거로 대체하기 위해서는 nest앱을 생성할때부터 별도의 작업 필요
-        main.ts 리팩토링
-          const app = await NestFactory.create(AppModule, {
-            logger: WinstonModule.createLogger({
-              transports: [new winston.transports.Console({
-                level:process.env.STAGE === 'prod' ? 'info' : 'debug',
-                format: winston.format.combine(
-                  winston.format.timestamp(),
-                  utilities.format.nestLike('Game NestJs Study', { prettyPrint: true })
-                )
-              })]
-            })
-          });
+      - 부트스랩에 포함된 로깅까지 winston모듈에서 제공하는 로거로 대체하기 위해서는 nest앱을 생성할때부터 별도의 작업 필요
+        - main.ts 리팩토링
+
+                const app = await NestFactory.create(AppModule, {
+                  logger: WinstonModule.createLogger({
+                    transports: [new winston.transports.Console({
+                      level:process.env.STAGE === 'prod' ? 'info' : 'debug',
+                      format: winston.format.combine(
+                        winston.format.timestamp(),
+                        utilities.format.nestLike('Game NestJs Study', { prettyPrint: true })
+                      )
+                    })]
+                  })
+                });
 
       대체한 로거를 사용할 모듈에서 provider로 선언해서 사용할수 있게 함
         app.module.ts에 providers: [Logger], 선언
