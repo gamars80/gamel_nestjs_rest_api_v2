@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { UserModule } from './user/user.module';
@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import postgresConfig from './config/postgres.config';
 import jwtConfig from './config/jwt.config';
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
+
 
 
 @Module({
@@ -29,7 +31,6 @@ import jwtConfig from './config/jwt.config';
         };
 
         if(configService.get('STAGE') === 'local') {
-          console.log('Sync Postgres')
           obj = Object.assign(obj, {
             synchronize: true,
             logging: true
@@ -43,5 +44,11 @@ import jwtConfig from './config/jwt.config';
     VideoModule,
     AnalyticsModule,
   ],
+  providers: [Logger],
 })
-export class AppModule {}
+export class AppModule implements NestModule{
+  configure(consumer: MiddlewareConsumer): void {
+    //모든 라우터에 적용
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}

@@ -187,6 +187,216 @@
           load: [postgresConfig, jwtConfig] //load에 jwtConfig 같이 로드되게 추가
         }),
 
+      auth.modul.ts에 config 서비스를 주입해서 이용
+        JwtModule.registerAsync({
+          inject: [ConfigService],
+          useFactory: async (configService: ConfigService) => {
+            return {
+              global: true,
+              secret: configService.get('jwt.secret'),
+              signOptions: { expiresIn: '1d' },
+            };
+          },
+        }),
+
+- 인증과 인가에 대해
+  인증 : 유저나 디바이스의 신원 증명
+    이메일, 패스워드 로그인 기능
+  인가 : 유저나 디바이스에 접근권한을 부여하거나 거부
+    웹토큰을 이용한 접근
+  
+  슬라이딩 세션
+    토큰 유효기간 종료시 다시 로그인을 거치지 않고 새로운 토큰을 발급하는 방식
+  리프레쉬 토큰
+    로그인을 대신할 토큰
+    동일한 json web token
+    엑세스 토큰보다 만료시간 길게
+    로그인시 엑세스토큰과 리프레쉬 토큰 같이 발행
+    엑세스토큰이 401로 만료시 리스레쉬 토큰 이용
+  auth > entity > refresh-token.entity.ts 생성
+    User랑 OnetoOne 관계 설정
+  
+  auth.module.ts imports에 엔티티 TypeOrm 설정
+    TypeOrmModule.forFeature([RefreshToken]),
+
+  로그인 결과에 리스레쉬 토큰도 내려주게 추가한다
+
+  리플레시 토큰 관련 기능 구현
+    리플레시라는 라우터 핸들러 구현
+      엑세스 토큰이 만료시 클라이언트 단에서 뒷단에서 로그인시 발급 받은 리플레시 토큰을 이용하는 api
+      헤더에서 넘어온 리프레쉬 토큰으로 db에 있는지 조회
+      없으면 어세스토큰과 리프레시 토큰을 다시 생성하여 return
+
+    jwt.auth.guard로 가서 리플레시토큰을 활용해서 엑세스토큰 역활을 할수 있기에 방지차 리팩토링
+      //url과 headers에 접근 가능해짐
+      const {url, headers} = http.getRequest<Request>();
+      const token = /Bearer\s(.+)/.exec(headers['authorization'])[1];
+      //디코딩
+      const decoded = this.jwtService.decode(token);
+
+      if(url !== '/api/auth/refresh' && decoded['tokenType'] === 'refresh') {
+        console.error('accessToken is required');
+        throw new UnauthorizedException(); 
+      }
+
+  인가 기능에 활용할수 있는 메타 데이터
+    메타데이터
+      ex: Pubice() 데코레이터
+        //SetMetadata 에 특정 키와 밸루로 메타데이터 설정
+        export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
+
+      jwt.auth.guard.ts에서도 아래처럼 메타데이터를 reflector를 이용해서 읽을수도 있다
+        const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
+        
+        if (isPublic) {
+          return true;
+        }
+
+
+    메타데이터를 이용해 유저에 롤 부여
+      user > enum> user.enum.ts 생성
+        export enum Role {
+            Admin = 'ADMIN',
+            User = 'USER'
+        }
+      
+      user.entity.ts 에 role 컬럼 추가
+        Column({ type: 'enum', enum: Role })
+        role: Role = Role.User;
+
+      롤관련 데코레이터 생성
+        common > decorator > role.decorator.ts 생성          
+          export const ROLES_KEY = 'roles';
+          export const Roles = (...roles: Role[]) => SetMetadata(ROLES_KEY, roles);
+
+      user의 findAll에 롤데코레이터 적용해보기
+        @Roles(Role.Admin)
+        jwt-auth.guard 수정
+        reflector 에용해서 메타데이터에서 ROLES_KEY를 가져온다
+
+          const requireRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+            context.getHandler(),
+            context.getClass()
+          ])
+
+          if( requireRoles ) {
+            const userId = decoded['sub'];
+            return this.userService.checkUserIsAdmin(userId);
+
+          }
+
+
+  - 미들웨어와 인터셉터
+    라우트 핸들러가 클라이언트의 요청을 처리하기 전 수행하는 컴포넌드
+    express의 미들웨어와 동일
+    인증, 인가, 로깅, 응답데이터의 변경등
+    인증인가: Guard
+    요청 : 인터셉터
+    access log : 미들웨어
+
+    common > middleware > logger.middleware.ts
+      access log에는 보통 http 메소드, url , 응답코드, 응답컨텐츠 길이, 요청한 유저 에이전트, ip 정보등
+
+      @Injectable()
+      export class LoggerMiddleware implements NestMiddleware {
+          private logger = new Logger('HTTP');
+
+          use(request: Request, response: Response, next: NextFunction): void {
+              const {ip, method, originalUrl: url } = request;
+              const userAgent = request.get('user-agent') || '';
+
+              response.on('close', () => {
+                  const { statusCode } = response;
+                  const contentLength = response.get('content-length');
+                  this.logger.log(`${mergeWith} ${url}, ${statusCode}, ${contentLength} - ${userAgent} ${ip}}`);
+              });
+
+              next();
+          }
+      }
+
+    루트 모듈인 app.module.ts에 위 미들웨어 적용
+
+      //NestModule 상속받고
+      export class AppModule implements NestModule{
+        configure(consumer: MiddlewareConsumer): void {
+          //모든 라우터에 적용
+          consumer.apply(LoggerMiddleware).forRoutes('*');
+        }
+      }
+
+    nest-winston을 활용한 로깅
+      프로덕션 레벨에서는 로컬이 아닌 db나 서드 파티에 남겨야 하므로 편한게 할수 있음
+      라이브러리 설치
+        npm i nest-winston winston
+
+      부트스랩에 포함된 로깅까지 winston모듈에서 제공하는 로거로 대체하기 위해서는 nest앱을 생성할때부터 별도의 작업 필요
+        main.ts 리팩토링
+          const app = await NestFactory.create(AppModule, {
+            logger: WinstonModule.createLogger({
+              transports: [new winston.transports.Console({
+                level:process.env.STAGE === 'prod' ? 'info' : 'debug',
+                format: winston.format.combine(
+                  winston.format.timestamp(),
+                  utilities.format.nestLike('Game NestJs Study', { prettyPrint: true })
+                )
+              })]
+            })
+          });
+
+      대체한 로거를 사용할 모듈에서 provider로 선언해서 사용할수 있게 함
+        app.module.ts에 providers: [Logger], 선언
+
+      logger.middleware.ts가서 수정
+     
+        @Injectable()
+        export class LoggerMiddleware implements NestMiddleware {
+            constructor(@Inject(Logger) private readonly logger: LoggerService) {} // 윈스턴 로고 주입
+
+            use(request: Request, response: Response, next: NextFunction): void {
+                const {ip, method, originalUrl: url } = request;
+                const userAgent = request.get('user-agent') || '';
+
+                response.on('close', () => {
+                    const { statusCode } = response;
+                    const contentLength = response.get('content-length');
+                    this.logger.log(`${mergeWith} ${url}, ${statusCode}, ${contentLength} - ${userAgent} ${ip}}`);
+                });
+
+                next();
+            }
+
+        }
+
+      리팩토링
+        auth.module.ts에 윈스턴 로고 적용해보기
+          providers에 Logger 선언
+          
+        jwt-auth.guard.ts에 console.error를 윈스턴 로고로 리팩토링
+          @Inject(Logger) private logger: LoggerService // 주입
+
+          if(url !== '/api/auth/refresh' && decoded['tokenType'] === 'refresh') {
+            const error = new UnauthorizedException('accessToken is required');
+            
+            this.logger.error(error.message, error.stack);
+            throw error;
+          }
+
+
+
+
+
+
+
+      
+
+
+
+
+
     
     
 

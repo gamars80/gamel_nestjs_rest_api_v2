@@ -8,6 +8,9 @@ import { JwtStrategy } from './jwt.strategy';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { RefreshToken } from './entity/refresh-token.entity';
+import { Logger } from 'winston';
 
 @Module({
   imports: [
@@ -23,14 +26,18 @@ import { ConfigService } from '@nestjs/config';
         };
       },
     }),
+
+    TypeOrmModule.forFeature([RefreshToken]),
   ], 
   providers: [
+    Logger,
     AuthService,
     JwtStrategy,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
+   
   ],
   controllers: [AuthController],
   exports: [AuthService],
