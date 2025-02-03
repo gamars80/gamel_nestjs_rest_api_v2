@@ -140,34 +140,34 @@
     - app.module.ts 수정
       - TypeOrm.forRoot를 forRootAsync로 변경해서 
       
-        TypeOrmModule.forRootAsync({ 
-          inject: [ConfigService], //inject프로퍼티 설정 (타입orm모듈이 처음 init이 될때 필요한 것들을 주입받아서 쓸 수 있게함 ) , ConfigService 주입
+            TypeOrmModule.forRootAsync({ 
+              inject: [ConfigService], //inject프로퍼티 설정 (타입orm모듈이 처음 init이 될때 필요한 것들을 주입받아서 쓸 수 있게함 ) , ConfigService 주입
 
-            //useFactory를 이용해서 동적 구성
-            //TypeOrm관련된 옵션들을 리턴해주게 됨
-            useFactory: async (configService : ConfigService) => {
-              let obj: TypeOrmModuleOptions = {
-                type: 'postgres',
-                host: configService.get('postgres.host'), //postgres.config.ts의 접두어 이용 
-                port: configService.get('postgres.port'),
-                database: configService.get('postgres.database'),
-                username: configService.get('postgres.username'),
-                password: configService.get('postgres.password'),
-                autoLoadEntities: true
-              };
+              //useFactory를 이용해서 동적 구성
+              //TypeOrm관련된 옵션들을 리턴해주게 됨
+              useFactory: async (configService : ConfigService) => {
+                let obj: TypeOrmModuleOptions = {
+                  type: 'postgres',
+                  host: configService.get('postgres.host'), //postgres.config.ts의 접두어 이용 
+                  port: configService.get('postgres.port'),
+                  database: configService.get('postgres.database'),
+                  username: configService.get('postgres.username'),
+                  password: configService.get('postgres.password'),
+                  autoLoadEntities: true
+                };
 
-                //좀더 튜닝
-                //실행환경에 따라 추가하고 싶은 싱크로나이징과 쿼리 로깅
-                //로컬에서는 엔티티를 수정할경우 싱크로 나이징이 유리할수도 있어서
-                //configService는 앱이 띄워질때 주어지는 환경 변수들에 대해서도 접근해서 가져올수 있음
-                if(configService.get('STAGE') === 'local') { //로컬에서만 되게 조심
-                  console.log('Sync Postgres')
-                  obj = Object.assign(obj, {
-                    synchronize: true,
-                    logging: true
-                  })
+                  //좀더 튜닝
+                  //실행환경에 따라 추가하고 싶은 싱크로나이징과 쿼리 로깅
+                  //로컬에서는 엔티티를 수정할경우 싱크로 나이징이 유리할수도 있어서
+                  //configService는 앱이 띄워질때 주어지는 환경 변수들에 대해서도 접근해서 가져올수 있음
+                  if(configService.get('STAGE') === 'local') { //로컬에서만 되게 조심
+                    console.log('Sync Postgres')
+                    obj = Object.assign(obj, {
+                      synchronize: true,
+                      logging: true
+                    })
+                  }
                 }
-              }
             }),
 
 
