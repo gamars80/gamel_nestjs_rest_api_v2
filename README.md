@@ -128,13 +128,13 @@
       - 의미 있는 단위로 묶어서 처리하기 위함
       - src> config 폴더 생성 postgres.config.ts
 
-          export default registerAs('postgres', () => ({
-            host: process.env.POSTGRES_HOST || 'localhost',
-            port: process.env.POSTGRES_PORT ? Number(process.env.POSTGRES_PORT) : 5434,
-            database: process.env.POSTGRES_DATABASE || 'postgres',
-            username: process.env.POSTGRES_USERNAME || 'postgres',
-            password: process.env.POSTGRES_PASSWORD || 'postgres'
-          }))
+        export default registerAs('postgres', () => ({
+          host: process.env.POSTGRES_HOST || 'localhost',
+          port: process.env.POSTGRES_PORT ? Number(process.env.POSTGRES_PORT) : 5434,
+          database: process.env.POSTGRES_DATABASE || 'postgres',
+          username: process.env.POSTGRES_USERNAME || 'postgres',
+          password: process.env.POSTGRES_PASSWORD || 'postgres'
+        }))
 
 
     - app.module.ts 수정
