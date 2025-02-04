@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { FindUserReqDto } from './dto/req.dto';
@@ -9,6 +9,7 @@ import { User, UserAfterAuth } from 'src/common/decorator/user.decorator';
 import { Roles } from 'src/common/decorator/role.decorator';
 import { Role } from './enum/user.enum';
 import { CreateDateColumn } from 'typeorm';
+import { Public } from 'src/common/decorator/public.decorator';
 
 @ApiTags('User')
 @ApiExtraModels(FindUserReqDto, FindUserResDto)
@@ -33,4 +34,5 @@ export class UserController {
   findOne(@Param() { id }: FindUserReqDto) {
     return this.userService.findOne(id);
   }
+
 }

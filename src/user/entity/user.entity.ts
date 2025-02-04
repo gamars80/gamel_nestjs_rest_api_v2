@@ -1,6 +1,6 @@
 import { RefreshToken } from 'src/auth/entity/refresh-token.entity';
 import { Video } from 'src/video/entity/video.entity';
-import { Column, CreateDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Role } from '../enum/user.enum';
 
 @Entity()
@@ -9,6 +9,8 @@ export class User {
   id: string;
 
   @Column({ unique: true })
+  // @Index('user-email-index')
+  // @Column()
   email: string;
 
   @Column()

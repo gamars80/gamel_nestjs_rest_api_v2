@@ -27,12 +27,13 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
           database: configService.get('postgres.database'),
           username: configService.get('postgres.username'),
           password: configService.get('postgres.password'),
-          autoLoadEntities: true
+          autoLoadEntities: true,
+          synchronize: false
         };
 
         if(configService.get('STAGE') === 'local') {
           obj = Object.assign(obj, {
-            synchronize: true,
+            // synchronize: true,
             logging: true
           })
         }

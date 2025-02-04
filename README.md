@@ -466,7 +466,7 @@
                     })
 
                     await queryRunner.manager.save(refreshTokenEntity);
-
+                    await queryRunner.commitTransaction();
                     return {id: userEntity.id, accessToken, refreshToken};
 
                   }catch(e) {
@@ -476,6 +476,15 @@
                     await queryRunner.release();
                     if(error) throw error;
                   }
+
+      - 인덱스 처리
+        - 유저 엔티티 활용
+
+              @Column({ unique: true } // unique 속성을 true 주면 자동으로 인덱스로 생성됨
+
+              //또는 데코레이터 활용하여 네이밍
+              @Index('user-email-index')
+
 
 
 
