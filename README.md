@@ -574,19 +574,19 @@
                 SwaggerModule.setup('docs', app, document, customOptions);
               }
 
-        - 유저 비밀번호 hashing 암호화
-          - bcrypt 패키징 설치
-            - npm i bcrypt
-            - npm i -D @types/bcrypt
+      - 유저 비밀번호 hashing 암호화
+        - bcrypt 패키징 설치
+          - npm i bcrypt
+          - npm i -D @types/bcrypt
 
-          - 유저 서비스단의 회원 가입과 로그인 리팩토링
+        - 유저 서비스단의 회원 가입과 로그인 리팩토링
 
-                //회원 가입시 암호화
-                const saltRounds = 10;
-                const hash = await bcrypt.hash(password, saltRounds);
+              //회원 가입시 암호화
+              const saltRounds = 10;
+              const hash = await bcrypt.hash(password, saltRounds);
 
-                //로그인쪽에 비밀번호 비교 수정
-                bcrypt.compare(password, user.password);
+              //로그인쪽에 비밀번호 비교 수정
+              bcrypt.compare(password, user.password);
 
         
 
