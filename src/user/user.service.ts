@@ -20,12 +20,6 @@ export class UserService {
     return 'find user';
   }
 
-  async create(email: string, password: string) {
-    const user = this.userRepository.create({ email, password });
-    await this.userRepository.save(user);
-    return user;
-  }
-
   async findOneByEmail(email: string) {
     const user = await this.userRepository.findOneBy({ email });
     return user;

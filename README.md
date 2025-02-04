@@ -438,9 +438,47 @@
                   }
               }
 
-      인터셉터 글로벌 적용
+      - 인터셉터 글로벌 적용
         main.ts에 추가
-        app.useGlobalInterceptors(new TransformInterceptor());
+
+              app.useGlobalInterceptors(new TransformInterceptor());
+
+      - 트랜젝션
+        - 회원가입 리팩토링
+          - 가입시 리프레쉬 토큰도 생성하여 db에 save 추가
+          - 트랜잭션 명시적 선언
+            - 서비스단에 DataSource 의존성 주입
+            - queryRunner를 통한 트랜젝션 시작, 커밋, 릴리즈
+
+                  let error;
+                  try{
+                    const user = await this.userService.findOneByEmail(email);
+                    if (user) throw new BadRequestException();
+
+                    const userEntity = queryRunner.manager.create(User, { email, password});
+                    await queryRunner.manager.save(userEntity);
+
+                    const accessToken = this.generateAccessToken(userEntity.id);
+                    const refreshToken = this.generateRefreshToken(userEntity.id);
+                    const refreshTokenEntity = queryRunner.manager.create(RefreshToken, {
+                      user: {id: userEntity.id},
+                      token: refreshToken
+                    })
+
+                    await queryRunner.manager.save(refreshTokenEntity);
+
+                    return {id: userEntity.id, accessToken, refreshToken};
+
+                  }catch(e) {
+                    await queryRunner.rollbackTransaction();
+                    error = e;
+                  }finally{
+                    await queryRunner.release();
+                    if(error) throw error;
+                  }
+
+
+
       
 
         
