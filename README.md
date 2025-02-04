@@ -517,7 +517,80 @@
 
         
 
+      - swagger 기본 보안 적용
+        - 스웨거 로그인을 통한 접근
+        - 패키지 설치
+        - npm i express-basic-auth
+        - src > config > swagger.config.ts 생성
+
+              import { registerAs } from "@nestjs/config";
+
+              export default registerAs('swagger', async () => {
+                  return {
+                      user: process.env.SWAGGER_USER || 'fastcampus',
+                      password: process.env.SWAGGER_PASSWORD || 'fastcampus',
+                  };
+              })
+
+        - app.module.ts에 스웨거 컨피그 로딩 추가
+
+              ConfigModule.forRoot({
+                isGlobal: true,
+                load: [postgresConfig, jwtConfig, swaggerConfig]
+              }),
+
+        - main.ts 추가 및 리팩토링
+
+              const configService = app.get(ConfigService);
+              // Swagger
+              const SWAGGER_ENVS = ['local', 'dev'];
+              const stage = configService.get('STAGE');
+
+              if (SWAGGER_ENVS.includes(stage)) {
+                console.log('ddddddd'+configService.get('swagger.user'))
+                app.use(
+                  ['/docs', '/docs-json'],
+                  basicAuth({
+                    challenge: true,
+                    users: {
+                      [configService.get('swagger.user')]: configService.get('swagger.password'),
+                    }
+                  })
+                )
+
+                const config = new DocumentBuilder()
+                .setTitle('NestJS project')
+                .setDescription('NestJS project API description')
+                .setVersion('1.0')
+                .addBearerAuth()
+                .build();
+
+                const customOptions: SwaggerCustomOptions = {
+                  swaggerOptions: {
+                    persistAuthorization: true,
+                  },
+                };
+                const document = SwaggerModule.createDocument(app, config);
+                SwaggerModule.setup('docs', app, document, customOptions);
+              }
+
+        - 유저 비밀번호 hashing 암호화
+          - bcrypt 패키징 설치
+            - npm i bcrypt
+            - npm i -D @types/bcrypt
+
+          - 유저 서비스단의 회원 가입과 로그인 리팩토링
+
+                //회원 가입시 암호화
+                const saltRounds = 10;
+                const hash = await bcrypt.hash(password, saltRounds);
+
+                //로그인쪽에 비밀번호 비교 수정
+                bcrypt.compare(password, user.password);
+
         
+
+
 
 
 

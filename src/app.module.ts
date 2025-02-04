@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import postgresConfig from './config/postgres.config';
 import jwtConfig from './config/jwt.config';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import swaggerConfig from './config/swagger.config';
 
 
 
@@ -15,7 +16,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [postgresConfig, jwtConfig]
+      load: [swaggerConfig, postgresConfig, jwtConfig]
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
