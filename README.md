@@ -598,7 +598,7 @@
                 limit: 10,
               }]),
 
-        - 가드를 통해 라우터 적용
+        - throttle 통해 보안 강화
           - 전용 가드 생성
           - common > guard > throttler-behind-proxy.guard.ts 생성
 
