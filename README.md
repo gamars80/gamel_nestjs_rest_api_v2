@@ -588,7 +588,53 @@
               //로그인쪽에 비밀번호 비교 수정
               bcrypt.compare(password, user.password);
 
-        
+       - Rate Limit 적용해보기
+        - 패키지 설치
+          - npm i @nestjs/throttler 
+        - app.module.ts에 import
+
+              ThrottlerModule.forRoot([{
+                ttl: 60000,
+                limit: 10,
+              }]),
+
+        - 가드를 통해 라우터 적용
+          - 전용 가드 생성
+          - common > guard > throttler-behind-proxy.guard.ts 생성
+
+                import { Injectable } from "@nestjs/common";
+                import { ThrottlerGuard } from "@nestjs/throttler";
+
+                @Injectable()
+                export class ThrottlerBehindProxyGuard extends ThrottlerGuard {
+                    protected async getTracker(req: Record<string, any>): Promise<string> {
+                        return req.ips.length ? req.ips[0] : req.ip
+                    }
+                }
+
+          - 비디오 컨트롤러에 적용해 보기
+            - 전역 선언 
+
+                    @UseGuards(ThrottlerBehindProxyGuard)
+
+            - 개별 선언
+
+                    @Throttle({ default: { limit: 3, ttl: 60000 } })
+
+            - 페이징 같은 case는  스킵
+
+                    @SkipThrottle()
+            
+
+
+          
+
+                  
+
+
+          
+
+
 
 
 
