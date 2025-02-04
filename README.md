@@ -486,6 +486,41 @@
               @Index('user-email-index')
 
 
+      - 마이그레이션
+        - 마이그레이션 cli 사용
+        - 패키지 설치
+          - npm i -g ts-node
+        - package.json에 script 추가
+
+            "typeorm": "ts-node -r ./node_modules/tsconfig-paths/register ./node_modules/typeorm/cli.js -d src/ormconfig.ts"
+
+        - src > ormconfig.ts 파일 생성
+
+              import { DataSource } from "typeorm";
+
+              export const AppDataSource = new DataSource({
+                  type: 'postgres',
+                  host: 'localhost',
+                  port: 5434,
+                  database: 'postgres',
+                  username: 'postgres',
+                  password: 'postgres',
+                  entities:[__dirname + '/**/*.entity{.ts,.js}'],
+                  synchronize: false,
+                  migrations: [__dirname + '/**/migrations/*.entity{.ts,.js}'],
+                  migrationsTableName: 'migrations'
+              })
+
+        - bash 명령어
+          - npm run typeorm migration:generate src/migrations/Init //스키마 파일 생성
+          - npm run typeorm migration:run //실제 쿼리 실행
+
+        
+
+        
+
+
+
 
 
       
