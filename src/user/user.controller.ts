@@ -22,10 +22,7 @@ export class UserController {
   @Roles(Role.Admin)
   @Get()
   async findAll(@Query() { page, size }: PageReqDto): Promise<FindUserResDto[]>{
-    const users = await this.userService.findAll(page, size);
-    return users.map(({ id, email, createdAt}) => {
-      return { id, email, createdAt: createdAt.toISOString()}
-    })
+    throw new Error("에러 테스트");
   }
 
   @ApiBearerAuth()

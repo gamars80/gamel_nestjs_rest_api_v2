@@ -574,57 +574,124 @@
                 SwaggerModule.setup('docs', app, document, customOptions);
               }
 
-      - 유저 비밀번호 hashing 암호화
-        - bcrypt 패키징 설치
-          - npm i bcrypt
-          - npm i -D @types/bcrypt
+        - 유저 비밀번호 hashing 암호화
+          - bcrypt 패키징 설치
+            - npm i bcrypt
+            - npm i -D @types/bcrypt
 
-        - 유저 서비스단의 회원 가입과 로그인 리팩토링
+          - 유저 서비스단의 회원 가입과 로그인 리팩토링
 
-              //회원 가입시 암호화
-              const saltRounds = 10;
-              const hash = await bcrypt.hash(password, saltRounds);
+                //회원 가입시 암호화
+                const saltRounds = 10;
+                const hash = await bcrypt.hash(password, saltRounds);
 
-              //로그인쪽에 비밀번호 비교 수정
-              bcrypt.compare(password, user.password);
+                //로그인쪽에 비밀번호 비교 수정
+                bcrypt.compare(password, user.password);
 
-       - Rate Limit 적용해보기
-        - 패키지 설치
-          - npm i @nestjs/throttler 
-        - app.module.ts에 import
+        - Rate Limit 적용해보기
+          - 패키지 설치
+            - npm i @nestjs/throttler 
+          - app.module.ts에 import
 
-              ThrottlerModule.forRoot([{
-                ttl: 60000,
-                limit: 10,
-              }]),
+                ThrottlerModule.forRoot([{
+                  ttl: 60000,
+                  limit: 10,
+                }]),
 
-        - throttle 통해 보안 강화
-          - 전용 가드 생성
-          - common > guard > throttler-behind-proxy.guard.ts 생성
+          - throttle 통해 보안 강화
+            - 전용 가드 생성
+            - common > guard > throttler-behind-proxy.guard.ts 생성
 
-                import { Injectable } from "@nestjs/common";
-                import { ThrottlerGuard } from "@nestjs/throttler";
+                  import { Injectable } from "@nestjs/common";
+                  import { ThrottlerGuard } from "@nestjs/throttler";
 
-                @Injectable()
-                export class ThrottlerBehindProxyGuard extends ThrottlerGuard {
-                    protected async getTracker(req: Record<string, any>): Promise<string> {
-                        return req.ips.length ? req.ips[0] : req.ip
+                  @Injectable()
+                  export class ThrottlerBehindProxyGuard extends ThrottlerGuard {
+                      protected async getTracker(req: Record<string, any>): Promise<string> {
+                          return req.ips.length ? req.ips[0] : req.ip
+                      }
+                  }
+
+            - 비디오 컨트롤러에 적용해 보기
+              - 전역 선언 
+
+                      @UseGuards(ThrottlerBehindProxyGuard)
+
+              - 개별 선언
+
+                      @Throttle({ default: { limit: 3, ttl: 60000 } })
+
+              - 페이징 같은 case는  스킵
+
+                      @SkipThrottle()
+          
+          - snentry 모니터링 및 slack 웹훅 알람
+            - .env 파일에 센트리 프로젝트 링크 및 슬랙 채널 웹훅 링크 선언
+            - 패키징 설치
+              - npm i @sentry/node
+              - npm i @slack/webhook
+            - gitignore에 env 파일 안올라가게
+            - 센트리용 config 파일 생성
+              - config > sentry.config.ts 생성
+
+                    export  default registerAs('sentry', () => ({
+                        dsn: process.env.SENTRY_DSN,
+                    }))
+
+              - app.module.ts에 콘피그 추가
+
+                    ConfigModule.forRoot({
+                      isGlobal: true,
+                      load: [sentryConfig, swaggerConfig, postgresConfig, jwtConfig]
+                    }),
+
+            - 센트리용 인터셉터 생성
+              - common > interceptor > sentry.interceptor.ts 생성
+
+                    import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
+                    import { Observable, catchError } from "rxjs";
+                    import { Request as ExpressRequest} from 'express';
+                    import * as Sentry from  '@sentry/node'
+                    import { IncomingWebhook } from "@slack/webhook";
+
+                    @Injectable()
+                    export class SentryInterceptor implements NestInterceptor {
+                        intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> | Promise<Observable<any>> {
+                            const http = context.switchToHttp();
+                            const request = http.getRequest<ExpressRequest>();
+                            const { url } = request;
+                            return next.handle().pipe(
+                                catchError((error) => {
+                                    Sentry.captureException(error);
+                                    const webhook = new IncomingWebhook(process.env.SLACK_WEBHOOK);
+                                    webhook.send({
+                                        attachments: [
+                                            {
+                                                text: '가멜 nestjs 에러발생',
+                                                fields: [
+                                                    {
+                                                        title: `에러 메세지 발생 : ${error.response?.message} || ${error.message}`,
+                                                        value: `URL: ${url}\n${error.stack}`,
+                                                        short: false
+                                                    },
+                                                ],
+                                                ts: Math.floor(new Date().getTime() / 1000).toString(),
+                                            }
+                                        ]
+                                    });
+                                    throw error;
+                                }),
+                            );
+                        }
                     }
-                }
 
-          - 비디오 컨트롤러에 적용해 보기
-            - 전역 선언 
+            - main.ts에 센트리 인터셉터 사용하겠다고 선언
 
-                    @UseGuards(ThrottlerBehindProxyGuard)
+                    app.useGlobalInterceptors(new SentryInterceptor(), new TransformInterceptor());
 
-            - 개별 선언
-
-                    @Throttle({ default: { limit: 3, ttl: 60000 } })
-
-            - 페이징 같은 case는  스킵
-
-                    @SkipThrottle()
             
+
+
 
 
           
