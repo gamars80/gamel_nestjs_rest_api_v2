@@ -685,8 +685,10 @@
                         }
                     }
 
-            - main.ts에 센트리 인터셉터 사용하겠다고 선언
+            - main.ts에 센트리 init하고 인터셉터 사용하겠다고 선언
 
+                    //센트리 init
+                    Sentry.init({ dsn: configService.get('sentry.dsn')});
                     app.useGlobalInterceptors(new SentryInterceptor(), new TransformInterceptor());
 
             
