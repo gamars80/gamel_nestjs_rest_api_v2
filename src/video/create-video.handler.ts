@@ -1,15 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { CommandHandler, EventBus, ICommandHandler } from '@nestjs/cqrs';
 import { DataSource } from 'typeorm';
 
 import { Video } from './entity/video.entity';
 import { User } from 'src/user/entity/user.entity'; // 실제 경로로 수정
 import { CreateVideoCommand } from './command/create-video.command';
+import { VideoCreatedEvent } from './event/video-created.event';
 
  @Injectable()
  @CommandHandler(CreateVideoCommand)
  export class CreateVideoHandler implements ICommandHandler<CreateVideoCommand> {
-    constructor(private dataSource: DataSource) {}
+    constructor(private dataSource: DataSource, private eventBus: EventBus) {}
 
     async execute(command: CreateVideoCommand): Promise<Video> {
         const { userId, title, mimetype, extension, buffer } = command;
@@ -18,16 +19,13 @@ import { CreateVideoCommand } from './command/create-video.command';
         let error;
 
         try{
-            console.log('title::::'+ title);
-            console.log('title::::'+ title);
-            console.log('title::::'+ title);
-            console.log('title::::'+ title);
-            console.log('title::::'+ title);
+
             const user = await queryRunner.manager.findOneBy(User, { id: userId});
             const video = await queryRunner.manager.save(queryRunner.manager.create(Video, {title, mimetype, user}))
 
             await this.uploadVideo(video.id, extension, buffer);
             await queryRunner.commitTransaction();
+            this.eventBus.publish(new VideoCreatedEvent(video.id));
             
             return video;
         }catch(e) {

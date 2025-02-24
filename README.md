@@ -815,7 +815,39 @@
                       return{ id, title };
                     }
 
+          - 이벤트 및 이벤트 핸들러 구현
+            - 비디오가 생성시 이벤트를 발생시켜 로그를 남겨본다
+            - video > event > video-created.event.ts 생성
+
+                  export class VideCreatedEvent implements IEvent {
+                      constructor(readonly id: string) {}
+                  }
+                
+            - video > video-created.handler.ts 생성
+
+                  @Injectable()
+                  @EventsHandler(VideoCreatedEvent)
+                  export class VideoCreatedHandler implements IEventHandler<VideoCreatedEvent> {
+                      handle(event: VideoCreatedEvent) {
+                          console.info(`Video Created(id: ${event.id})`);
+                      }
+                  }
+
+            - video.module.ts providers에 핸들러 추가
+            - create-video.handler.ts에 추가 작업
+              - EventBus를 이용하여 퍼블리싱 해줘야한다 이벤트가 발생한다
+              - constructor(private dataSource: DataSource, private eventBus: EventBus) {} 추가
+              
+                      await this.uploadVideo(video.id, extension, buffer);
+                      await queryRunner.commitTransaction();
+                      this.eventBus.publish(new VideoCreatedEvent(video.id)); //추가
+                      
+              - 
+
             
+
+            
+
 
             
 
