@@ -24,8 +24,9 @@ export class VideoController {
   @Post()
   async upload(@Body() createVideoReqDto: CreateVideoReqDto, @User() user: UserAfterAuth): Promise<CreateVideoResDto> {
     // return this.videoService.create();
-    const { title, video } = createVideoReqDto;
-    const command = new CreateVideoCommand(user.id, video.title,  'video/mp4', 'mp4', Buffer.from(''));
+
+    const { title } = createVideoReqDto;
+    const command = new CreateVideoCommand(user.id, title,  'video/mp4', 'mp4', Buffer.from(''));
     const {id} = await this.commandBus.execute(command);
     return{ id, title };
   }

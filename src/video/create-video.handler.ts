@@ -18,6 +18,11 @@ import { CreateVideoCommand } from './command/create-video.command';
         let error;
 
         try{
+            console.log('title::::'+ title);
+            console.log('title::::'+ title);
+            console.log('title::::'+ title);
+            console.log('title::::'+ title);
+            console.log('title::::'+ title);
             const user = await queryRunner.manager.findOneBy(User, { id: userId});
             const video = await queryRunner.manager.save(queryRunner.manager.create(Video, {title, mimetype, user}))
 
