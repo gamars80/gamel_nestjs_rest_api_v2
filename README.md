@@ -845,13 +845,51 @@
             
         - 쿼리 구현
           - 쿼리는 커맨드와 반대로 데이터를 조회하는 용도로 사용
-          ㅇㄴㅁㅇ
-          ㅇㄴㅁ
-          ㅇㄴㅁㅇㄴㅁ
-          ㅇㄴㅁㅇ
-          ㄴㅁㅇㅁㄴ
-          ㅇ
-          
+          - video > query > find-videos.query.ts 작성
+
+                export class FindVideosQuery implements IQuery {
+                    constructor(readonly page: number, readonly size: number) {}
+                }
+
+          - 핸들러 생성 find-videos.handler.ts
+
+                @Injectable()
+                @QueryHandler(FindVideosQuery)
+                export class FindVideosQueryHandler implements IQueryHandler<FindVideosQuery> {
+                    constructor(@InjectRepository(Video) private videoRepository: Repository<Video>) {}
+
+                    async execute({page, size}: FindVideosQuery): Promise<any> {
+                        const videos = await this.videoRepository.find({ relations: ['user'], skip: (page - 1) * size, take: size});
+                        return videos;
+                    }
+                }
+
+          - vidoe.module.ts providers에 위 핸들러 추가
+          - video.controller.ts의 findAll 함수 리팩토링
+            - 마찬가지로 service를 이용하는게 아닌 쿼리핸들러를 이용 QueryBus 이용
+
+                  @ApiBearerAuth()
+                  @ApiGetItemsResponse(FindVideoResDto)
+                  @SkipThrottle()
+                  @Get()
+                  async findAll(@Query() { page, size }: PageReqDto): Promise<FindVideoResDto[]> {
+                    // return this.videoService.findAll();
+                    const findVideosQuery = new FindVideosQuery(page, size);
+                    const videos = await this.queryBus.execute(findVideosQuery);
+                    return videos.map((id, title, user) => {
+                      return {
+                        id,
+                        title,
+                        user: {
+                          id: user.id,
+                          email: user.email
+                        }
+                      }
+                    })
+                  }
+
+    
+
 
             
 
