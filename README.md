@@ -691,6 +691,42 @@
                     Sentry.init({ dsn: configService.get('sentry.dsn')});
                     app.useGlobalInterceptors(new SentryInterceptor(), new TransformInterceptor());
 
+
+        - health check
+          - 패키지 설치
+            - npm install @nestjs/terminus@9.1.2
+            - 체크에 필요한 모듈과 컨틀롤러 생성
+              - nest g module health 
+              - nest g controller health
+            - health.module.ts에 imports 추가
+
+                  @Module({
+                    imports: [TerminusModule],
+                    controllers: [HealthController]
+                  })
+
+            - health.controller.ts 에 의존성 주입
+              - terminus에 제공하는 HealthCheckService 
+              - typeORM 관련된 헬스체크를 위해 TypeOrmHealthIndicator 를 통해 db를 찔러봤을때 이상이 없으면 데이터를 받아보는 템플릿 같은
+
+                    @Controller('health')
+                    export class HealthController {
+                        constructor(private health: HealthCheckService, private db: TypeOrmHealthIndicator) {}
+
+                        @Get()
+                        @HealthCheck()
+                        @Public()
+                        check() {
+                            return this.health.check([
+                                () => this.db.pingCheck('database')
+                            ]);
+                        }
+                    }
+
+              
+
+
+
             
 
 
