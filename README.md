@@ -723,7 +723,98 @@
                         }
                     }
 
-              
+        - CQRS 모델
+          - CQRS 패턴에서는 **명령(command)**와 **조회(query)**를 명확하게 분리하여, 데이터 변경 로직과 읽기 전용 로직을 독립적으로 관리합니다.
+          - 데이터를 생성하는 명령과 조회하는 READ를 분리해서 확장성을 높이고 성능을 높히는
+          - 조회시의 데이터 모델과 데이터를 생성하는 모델을 다르게 가져간다
+          - 데이터를 생성하는 커맨드 구현
+            - npm install @nestjs/cqrs@10
+          - video.module.ts에 cqrs 모듈 imports에 추가
+          - 커맨드 생성
+            - video > command > create-video.command.ts
+
+                    import { ICommand } from "@nestjs/cqrs";
+
+                    export class CreateVideoCommand implements ICommand {
+                        constructor(
+                            readonly userId: string,
+                            readonly title: string,
+                            readonly mimetype: string,
+                            readonly extension: string,
+                            readonly buffer: Buffer
+                        ) {}
+                    }
+          - video.controller.ts 리팩토링
+            - 기존에는 service를 이용해서 create를 했지만 cqrs패턴을 이용하기 위해 command를 만들고 핸들링을 만든다
+            - 리팩토링
+
+                  @ApiBearerAuth()
+                  @ApiPostResponse(CreateVideoResDto)
+                  @Post()
+                  upload(@Body() createVideoReqDto: CreateVideoReqDto, @User() user: UserAfterAuth) {
+                    // return this.videoService.create();
+                    const { title, video } = createVideoReqDto;
+                    const command = new CreateVideoCommand(user.id, video.title,  'vidoe/mp4', 'mp4', Buffer.from(''));
+                  }
+
+          - 핸들러 구현
+            - video > create-video.handler.ts
+
+                    @Injectable()
+                    @CommandHandler(CreateVideoCommand)
+                    export class CreateVideoHandler implements ICommandHandler<CreateVideoCommand> {
+                        constructor(private dataSource: DataSource) {}
+
+                        async execute(command: CreateVideoCommand): Promise<Video> {
+                            const { userId, title, mimetype, extension, buffer } = command;
+                            const queryRunner = this.dataSource.createQueryRunner();
+                            await queryRunner.startTransaction();
+                            let error;
+
+                            try{
+                                const user = await queryRunner.manager.findOneBy(User, { id: userId});
+                                const video = await queryRunner.manager.save(queryRunner.manager.create(Video, {title, mimetype, user}))
+
+                                await this.uploadVideo(video.id, extension, buffer);
+                                await queryRunner.commitTransaction();
+                                
+                                return video;
+                            }catch(e) {
+                                await queryRunner.rollbackTransaction();
+                                error = e;
+                            }finally{
+                                await queryRunner.release();
+                                if(error) throw error;
+                            }
+                        }
+
+                        private async uploadVideo(id: string, extension: string, buffer: Buffer) {
+                            console.log('upload Video');
+                        }
+                    }
+
+            - video.module.ts providers에 위 핸들러 추가
+              - providers: [VideoService, CreateVideoHandler],
+            
+            - video.controller.ts에 커맨드 버스 이용 및 핸들러를 이용
+            
+                    constructor(private readonly videoService: VideoService, private commandBus: CommandBus) {}
+
+                    @ApiBearerAuth()
+                    @ApiPostResponse(CreateVideoResDto)
+                    @Post()
+                    async upload(@Body() createVideoReqDto: CreateVideoReqDto, @User() user: UserAfterAuth): Promise<CreateVideoResDto> {
+                      // return this.videoService.create();
+                      const { title, video } = createVideoReqDto;
+                      const command = new CreateVideoCommand(user.id, video.title,  'video/mp4', 'mp4', Buffer.from(''));
+                      const {id} = await this.commandBus.execute(command);
+                      return{ id, title };
+                    }
+
+            
+
+            
+
 
 
 
