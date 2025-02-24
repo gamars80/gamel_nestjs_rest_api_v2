@@ -841,8 +841,13 @@
                       await this.uploadVideo(video.id, extension, buffer);
                       await queryRunner.commitTransaction();
                       this.eventBus.publish(new VideoCreatedEvent(video.id)); //추가
-                      
-              - 
+
+          
+          - 쿼리 구현
+            - 쿼리는 커맨드와 반대로 데이터를 조회하는 용도로 사용
+            - 구현방법은 유사
+            - 
+            
 
             
 
