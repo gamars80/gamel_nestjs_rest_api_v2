@@ -843,50 +843,102 @@
                       this.eventBus.publish(new VideoCreatedEvent(video.id)); //추가
                       
             
-        - 쿼리 구현
-          - 쿼리는 커맨드와 반대로 데이터를 조회하는 용도로 사용
-          - video > query > find-videos.query.ts 작성
+          - 쿼리 구현
+            - 쿼리는 커맨드와 반대로 데이터를 조회하는 용도로 사용
+            - video > query > find-videos.query.ts 작성
 
-                export class FindVideosQuery implements IQuery {
-                    constructor(readonly page: number, readonly size: number) {}
-                }
-
-          - 핸들러 생성 find-videos.handler.ts
-
-                @Injectable()
-                @QueryHandler(FindVideosQuery)
-                export class FindVideosQueryHandler implements IQueryHandler<FindVideosQuery> {
-                    constructor(@InjectRepository(Video) private videoRepository: Repository<Video>) {}
-
-                    async execute({page, size}: FindVideosQuery): Promise<any> {
-                        const videos = await this.videoRepository.find({ relations: ['user'], skip: (page - 1) * size, take: size});
-                        return videos;
-                    }
-                }
-
-          - vidoe.module.ts providers에 위 핸들러 추가
-          - video.controller.ts의 findAll 함수 리팩토링
-            - 마찬가지로 service를 이용하는게 아닌 쿼리핸들러를 이용 QueryBus 이용
-
-                  @ApiBearerAuth()
-                  @ApiGetItemsResponse(FindVideoResDto)
-                  @SkipThrottle()
-                  @Get()
-                  async findAll(@Query() { page, size }: PageReqDto): Promise<FindVideoResDto[]> {
-                    // return this.videoService.findAll();
-                    const findVideosQuery = new FindVideosQuery(page, size);
-                    const videos = await this.queryBus.execute(findVideosQuery);
-                    return videos.map((id, title, user) => {
-                      return {
-                        id,
-                        title,
-                        user: {
-                          id: user.id,
-                          email: user.email
-                        }
-                      }
-                    })
+                  export class FindVideosQuery implements IQuery {
+                      constructor(readonly page: number, readonly size: number) {}
                   }
+
+            - 핸들러 생성 find-videos.handler.ts
+
+                  @Injectable()
+                  @QueryHandler(FindVideosQuery)
+                  export class FindVideosQueryHandler implements IQueryHandler<FindVideosQuery> {
+                      constructor(@InjectRepository(Video) private videoRepository: Repository<Video>) {}
+
+                      async execute({page, size}: FindVideosQuery): Promise<any> {
+                          const videos = await this.videoRepository.find({ relations: ['user'], skip: (page - 1) * size, take: size});
+                          return videos;
+                      }
+                  }
+
+            - vidoe.module.ts providers에 위 핸들러 추가
+            - video.controller.ts의 findAll 함수 리팩토링
+              - 마찬가지로 service를 이용하는게 아닌 쿼리핸들러를 이용 QueryBus 이용
+
+                    @ApiBearerAuth()
+                    @ApiGetItemsResponse(FindVideoResDto)
+                    @SkipThrottle()
+                    @Get()
+                    async findAll(@Query() { page, size }: PageReqDto): Promise<FindVideoResDto[]> {
+                      // return this.videoService.findAll();
+                      const findVideosQuery = new FindVideosQuery(page, size);
+                      const videos = await this.queryBus.execute(findVideosQuery);
+                      return videos.map((id, title, user) => {
+                        return {
+                          id,
+                          title,
+                          user: {
+                            id: user.id,
+                            email: user.email
+                          }
+                        }
+                      })
+                    }
+
+        - 파일 업로드
+          - video.controller.ts upload 함수 리팩토링 
+            - 스웨거에서 폼데이터로 파일을 업로드 할 수 있도록 데코레이터 추가
+              - @ApiConsumes('multipart/form-data')
+            - 인터셉터 데코레이터 추가
+              -  @UseInterceptors(FileInterceptor('video'))
+            - nest에서 제공해주는 UploadedFile 데코레이터 활용
+
+                  @UploadedFile(
+                    new ParseFilePipeBuilder().addFileTypeValidator({
+                      fileType: 'mp4'
+                    })
+                    .addMaxSizeValidator({
+                      maxSize: 5 * 1024 * 1024
+                    })
+                    .build({
+                      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+                    })
+                  ) file: Express.Multer.File,
+
+            - file을 통해 mimetype, originalname, buffer, extension등을 구한다
+            - upload 함수 구현
+
+                  private async uploadVideo(id: string, extension: string, buffer: Buffer) {
+                      console.log('upload Video');
+                      const filePath = join(process.cwd(), 'video-storage', `${id}.${extension}`);
+                      await writeFile(filePath, buffer);
+                  }
+
+            - 다운로드 함수 구현
+
+                  async download(id: string): Promise<{ stream: ReadStream; mimetype: string; size: number }> {
+                    const video = await this.videoRepository.findOneBy({ id });
+                    if (!video) throw new NotFoundException('No video');
+
+                    await this.videoRepository.update({ id }, { downloadCnt: () => 'download_cnt + 1' });
+
+                    const { mimetype } = video;
+                    const extension = mimetype.split('/')[1];
+                    const videoPath = join(process.cwd(), 'video-storage', `${id}.${extension}`);
+                    const { size } = await stat(videoPath);
+                    const stream = createReadStream(videoPath);
+                    return { stream, mimetype, size };
+                  }
+
+
+            
+
+          -
+
+        
 
     
 

@@ -6,6 +6,9 @@ import { Video } from './entity/video.entity';
 import { User } from 'src/user/entity/user.entity'; // 실제 경로로 수정
 import { CreateVideoCommand } from './command/create-video.command';
 import { VideoCreatedEvent } from './event/video-created.event';
+import { join } from 'path';
+import { writeFile } from 'fs/promises';
+
 
  @Injectable()
  @CommandHandler(CreateVideoCommand)
@@ -39,5 +42,7 @@ import { VideoCreatedEvent } from './event/video-created.event';
 
     private async uploadVideo(id: string, extension: string, buffer: Buffer) {
         console.log('upload Video');
+        const filePath = join(process.cwd(), 'video-storage', `${id}.${extension}`);
+        await writeFile(filePath, buffer);
     }
  }
