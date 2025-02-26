@@ -936,7 +936,9 @@
 
             
 
-          -
+          - 스케줄러 구현
+            - 스케줄 모듈 설치
+              - npm i @nestjs/schedule
 
         
 

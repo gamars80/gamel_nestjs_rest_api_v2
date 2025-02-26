@@ -32,4 +32,5 @@ export class Video {
   @ManyToOne(() => User, (user) => user.videos)
   @JoinColumn({ name: 'user_id' })
   user: User;
+  extension: any;
 }

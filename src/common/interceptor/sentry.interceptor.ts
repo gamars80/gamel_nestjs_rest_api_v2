@@ -1,10 +1,8 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from "@nestjs/common";
 import { Observable, catchError } from "rxjs";
 import { Request as ExpressRequest} from 'express';
-import { error } from "console";
 import * as Sentry from  '@sentry/node'
 import { IncomingWebhook } from "@slack/webhook";
-import { title } from "process";
 
 @Injectable()
 export class SentryInterceptor implements NestInterceptor {
