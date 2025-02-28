@@ -970,9 +970,68 @@
                   - 버전 문제시 npm install @nestjs-modules/mailer nodemailer --legacy-peer-deps(비추)
                 - npm i --save-dev @types/nodemailer
                   - 버전 문제시 npm install --save-dev @types/nodemailer --legacy-peer-deps (비추)
-              - email module 및 service 설치
-                - nest g mo email
-                - nest g s email
+              - - email module 및 service 설치
+                 - nest g mo email
+                 - nest g s email
+                - email.module.ts에 imports
+
+                        imports: [
+                          MailerModule.forRootAsync({
+                            inject: [ConfigService],
+                            useFactory: (configService: ConfigService) => ({
+                              transport: {
+                                host: 'smtp.gmail.com',
+                                port: 587,
+                                auth: {
+                                  user: configService.get('email'),
+                                  pass: configService.get('email.pass')
+                                }
+                              }
+                            }),
+                          })
+                        ],
+
+                - config 설정 config> email.config.ts 생성
+
+                      export default registerAs('email', () => ({
+                          user: process.env.EMAIL_USER,
+                          pass: process.env.EMAIL_PASS,
+                      }))
+
+                - app.module.ts에 이메일 콘피그 load 선언
+                - email.service.ts 구현
+                  - email.module.ts에 이메일 서비스 exports 추가
+
+                        @Injectable()
+                        export class EmailService {
+                            constructor(private readonly mailerService: MailerService) {}
+
+                            async send(videos: Video[]) {
+                                const data = videos.map((id, title, downloadCnt) => {
+                                    return `<tr><td>${id}</td><td>${title}</td><td>${downloadCnt}</td></tr>`;
+                                })
+
+                                await this.mailerService.sendMail({
+                                    from: 'gamars803@gmail.com',
+                                    to: 'gamars80@gmail.com',
+                                    subject:'gamel send email test',
+                                    html:`
+                                    <table style="border 1px solid black; width: 60%, margin:auto, text-align:center">
+                                    <tr><th>id</th><th>title</th><th>download</th></tr>
+                                    ${data}</table>
+                                    `,
+                                })
+                            }
+                        }
+
+                  - analytics.module.ts에 EmailModule imports 추가
+                  - analytics.service.ts에 EmailService 주입
+                    - handleEmailCron() 함수에 이메일 전송하기 추가
+                      - this.emailService.send(videos);
+                
+
+
+
                 
 
 
