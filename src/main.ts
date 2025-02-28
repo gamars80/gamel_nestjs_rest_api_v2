@@ -1,3 +1,7 @@
+
+// main.ts 파일의 가장 위에 추가
+global.crypto = require('crypto');
+
 import { SentryInterceptor } from './common/interceptor/sentry.interceptor';
 import { Logger } from '@nestjs/common';
 import { ValidationPipe } from '@nestjs/common';
@@ -73,7 +77,14 @@ async function bootstrap() {
   app.useGlobalInterceptors(new SentryInterceptor(), new TransformInterceptor());
 
   await app.listen(port);
+
+
   Logger.log(`STAGE: ${process.env.STAGE}`);
   Logger.log(`listening on port ${port}`);
+
+  const emailConfig = configService.get('email');
+  Logger.log('ddddddddddddddd'+emailConfig)
+  Logger.log('EMAIL_USER:', emailConfig?.user, 'EMAIL_PASS:', emailConfig?.pass);
+
 }
 bootstrap();

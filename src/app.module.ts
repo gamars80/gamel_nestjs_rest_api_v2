@@ -11,7 +11,9 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import swaggerConfig from './config/swagger.config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { HealthModule } from './health/health.module';
+import { EmailModule } from './email/email.module';
 import sentryConfig from './config/sentry.config';
+import emailConfig from './config/email.config';
 
 
 
@@ -23,7 +25,7 @@ import sentryConfig from './config/sentry.config';
     }]),
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [sentryConfig, swaggerConfig, postgresConfig, jwtConfig]
+      load: [emailConfig, sentryConfig, swaggerConfig, postgresConfig, jwtConfig]
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -53,6 +55,7 @@ import sentryConfig from './config/sentry.config';
     VideoModule,
     AnalyticsModule,
     HealthModule,
+    EmailModule,
   ],
   providers: [Logger],
 })

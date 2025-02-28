@@ -939,6 +939,42 @@
           - 스케줄러 구현
             - 스케줄 모듈 설치
               - npm i @nestjs/schedule
+              - npm i --save-dev @types/cron
+
+            - analytics.module.ts에 스케줄모듈과 비디오 모듈 imports
+              - imports: [ScheduleModule.forRoot(), VideoModule],
+
+            - video.module.ts에 비디오 서비스 exports
+              - exports: [VideoService]
+
+            - analytics.service.ts 구현
+              - 비디오 서비스 생성자
+              - 크론잡 핸들러 등록해보기 비디오 목록을 5개만 가져오는
+
+                    @Cron(CronExpression.EVERY_MINUTE)
+                    async handleEmailCron() {
+                        Logger.log('Email task called');
+
+                        const videos = await this.videoService.findTop5Download();
+                    }
+
+              - 이슈 서버 실행시 에러가 나길래 보니 node버전 문제로 main.ts 최상단에 추가
+
+                    // main.ts 파일의 가장 위에 추가
+                    global.crypto = require('crypto');
+
+            
+            - 배치를 통한 메일 전송 구현
+              - 필요 모듈 설치
+                - npm i @nestjs-modules/mailer nodemailer
+                  - 버전 문제시 npm install @nestjs-modules/mailer nodemailer --legacy-peer-deps(비추)
+                - npm i --save-dev @types/nodemailer
+                  - 버전 문제시 npm install --save-dev @types/nodemailer --legacy-peer-deps (비추)
+              - email module 및 service 설치
+                - nest g mo email
+                - nest g s email
+                
+
 
         
 
