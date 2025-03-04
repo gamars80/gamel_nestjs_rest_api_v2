@@ -33,9 +33,9 @@ async function bootstrap() {
   // Swagger
   const SWAGGER_ENVS = ['local', 'dev'];
   const stage = configService.get('STAGE');
-
+  Logger.log('stage:::'+stage)
   if (SWAGGER_ENVS.includes(stage)) {
-    console.log('ddddddd'+configService.get('swagger.user'))
+    Logger.log('ddddddd'+configService.get('swagger.user'))
     app.use(
       ['/docs', '/docs-json'],
       basicAuth({
