@@ -6,9 +6,8 @@ RUN mkdir -p video-storage
 
 RUN npm uninstall bcrypt --legacy-peer-deps
 RUN npm install bcrypt --legacy-peer-deps
-RUN npm install 
+RUN npm install --legacy-peer-deps
 RUN npm run build
-
 
 ARG STAGE
 ENV STAGE ${STAGE}
@@ -28,6 +27,5 @@ ARG SWAGGER_USER
 ENV SWAGGER_USER ${SWAGGER_USER}
 ARG SWAGGER_PASSWORD
 ENV SWAGGER_PASSWORD ${SWAGGER_PASSWORD}
-
 
 CMD npm run typeorm migration:run;npm run start:prod
