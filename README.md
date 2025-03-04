@@ -1158,8 +1158,10 @@
                           Copied!# Last step, run it!
                           $ nohup ./run.sh &
 
-                  - 깃헙액션을 통한 cd 시 단계 설정 yml 파일 작성
+                  - 깃헙액션 Runner를 통한 cd 시 단계 설정 yml 파일 작성
                     - 프로젝트 루트 > .github > workflows > main.yml 작성
+                      - main 브랜치에 push 시 액션 실행
+                      - 
 
                   -     
                   

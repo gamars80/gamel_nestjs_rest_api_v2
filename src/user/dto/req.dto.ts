@@ -1,8 +1,8 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID } from 'class-validator';
+import { ApiProperty } from "@nestjs/swagger";
+import { IsUUID } from "class-validator";
 
 export class FindUserReqDto {
-  @ApiProperty({ required: true })
-  @IsUUID()
-  id: string;
+    @ApiProperty({required: true})
+    @IsUUID()
+    id: string;
 }
