@@ -1113,7 +1113,60 @@
             - 프로젝트 coverage 폴더에 report를 html로도 생성해줘서 브라우저에서도 한눈에 확인할 수 있다.
 
           
+          - CI/CD
+            - aws ec2 생성 ubuntu 22.04 lts
+            - ssh 접속
+            - 도커
+              - https://docs.docker.com/engine/install/ubuntu/ 참고하여 설치
+                - sudo docker run hello-world 까지 진행
+            - 도커컴포즈로 포스트그레스 db 띄우기
+              - sudo chmod 666 /var/run/docker.sock
+              - sudo apt install docker-compose
+              - 프로젝트의 docker-compose.yml을 ec2 /home/ubuntu로 복사
+              - docker-compose up -d 를 이용해 ec2 서버에 postgres를 뛰운다
+              - docker ps 로 확인
+            - 도커 배포를 위한 dockerfile과 .dockerignore 생성
+              - node_module/ 와 dist/ 의 경로는 이미지로 만들어지지 않도록 ignore에 추가
+            - 로컬에서 테스트
+              - nestjs 라는 태그를 달아 이미지를 띄운다
+              - docker build -t nestjs .
+              - docker run -e STAGE=dev -e POSTGRES_HOST=host.docker.internal --name nestjs -d -p:3000:3000 nestjs
+              - docker ps 로 nestjs라는 도커 이미지가 잘 띄워졌는지 확인
+              - docker logs nestjs로 서버 로그 확인
+            - 깃헙 액션 설정 통한 ci/cd
+              - github토큰 생성
+                - 권한 필수 체크 (workflow, write:package, delete:package)
+              - 해당 레포지토리에 setting > secrets and variables > Actions
+                - GHCR_TOKEN이라는 변수에 위의 토큰 등록
+                - 그 외 변수들 모두 등록 스웨거,포스트그레스, jwq 토큰, email, 센트리, 슬랙
+                  - dockerfile에 선언한 환경변수와 일치
+              - github에서 actions > Runners 
+                - New self-hosted runner
+                  - Runner 이미지는 ubuntu니까 Linux 선택
+                  - 안내 명령어들 복사해서 ec2에서 실행
 
+                          # Create a folder
+                          $ mkdir actions-runner && cd actions-runner
+                          # Download the latest runner package
+                          $ curl -o actions-runner-linux-x64-2.322.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.322.0/actions-runner-linux-x64-2.322.0.tar.gz
+                          # Optional: Validate the hash
+                          $ echo "b13b784808359f31bc79b08a191f5f83757852957dd8fe3dbfcc38202ccf5768  actions-runner-linux-x64-2.322.0.tar.gz" | shasum -a 256 -c
+                          # Extract the installer
+                          $ tar xzf ./actions-runner-linux-x64-2.322.0.tar.gz
+                          # Create the runner and start the configuration experience
+                          $ ./config.sh --url https://github.com/gamars80/gamel_nestjs_rest_api_v2 --token AK7CH7IWWABW7QENKTQ65JDHYZ6SQ
+                          Copied!# Last step, run it!
+                          $ nohup ./run.sh &
+
+                  - 깃헙액션을 통한 cd 시 단계 설정 yml 파일 작성
+                    - 프로젝트 루트 > .github > workflows > main.yml 작성
+
+                  -     
+                  
+
+
+            
+            - 
                 
 
 
