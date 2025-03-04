@@ -51,6 +51,7 @@ jobs:
             "SWAGGER_USER=${{ secrets.SWAGGER_USER }}"
             "SWAGGER_PASSWORD=${{ secrets.SWAGGER_PASSWORD }}"
 
+            
   deploy:
     needs: build
     name: Deploy
